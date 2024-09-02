@@ -5,16 +5,17 @@ import type { GraphQLSchema } from "graphql";
 import { asBruno } from "./bruno";
 import { extractOperations } from "./operations";
 
-export interface BruPluginConfig {
-	outputDir?: string;
-}
-
-export const plugin: PluginFunction<BruPluginConfig> = async (
+export const plugin: PluginFunction = async (
 	schema: GraphQLSchema,
 	documents: Types.DocumentFile[],
-	config: BruPluginConfig,
+	config,
+	info,
 ): Promise<string> => {
-	const outputDir = config.outputDir || "bruno-queries";
+	const outputDir = info?.outputFile;
+
+	if (!outputDir) {
+		throw new Error("Output directory not provided");
+	}
 
 	const operations = extractOperations(schema, documents);
 	let i = 0;
