@@ -1,15 +1,12 @@
-import { FileContent } from "./operations";
 import prettier from "prettier";
-import fs from "fs-extra";
+import type { FileContent } from "./operations";
 
 export const asBruno = async (operation: FileContent, sequence: number) => {
+	const formattedContent = await prettier.format(operation.content, {
+		parser: "graphql",
+	});
 
-    const formattedContent = await prettier.format(operation.content, {
-      parser: "graphql",
-    });
-
-
-    return `
+	return `
 meta {
   name: ${operation.name}
   type: graphql
@@ -27,7 +24,7 @@ body:graphql {
 }
 
 body:graphql:vars {
+  ${JSON.stringify(operation.vars, null, 2).split("\n").join("\n  ")}
 }
-  `
-}
-
+  `;
+};
