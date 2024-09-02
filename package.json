@@ -9,6 +9,7 @@
 		"build": "tsup",
 		"lint": "biome ci",
 		"clean": "rm -rf dist",
+		"publish:ci": "pnpm build && pnpm changeset publish",
 		"test": "vitest run",
 		"test:ci": "vitest run --coverage"
 	},
