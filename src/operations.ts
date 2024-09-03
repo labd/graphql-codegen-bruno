@@ -1,3 +1,4 @@
+import assert from "node:assert";
 import type { Types } from "@graphql-codegen/plugin-helpers";
 import {
 	type FragmentDefinitionNode,
@@ -14,7 +15,8 @@ export interface BruPluginConfig {
 export type FileContent = {
 	name: string;
 	content: string;
-	vars: Record<string, any>;
+	vars: Record<string, unknown>;
+	location: string | undefined;
 };
 
 export const extractOperations = (
@@ -42,7 +44,10 @@ export const extractOperations = (
 		if (doc.document) {
 			const operations = doc.document.definitions
 				.filter((def) => def.kind === Kind.OPERATION_DEFINITION)
-				.map((operation) => {
+				.filter((operation) => operation.name?.value !== undefined) // Filter out unnamed operations
+				.map((operation): FileContent => {
+					assert(operation.name?.value);
+
 					const operationString = doc.rawSDL || "";
 
 					// Collect the names of all fragments used in this operation
@@ -66,7 +71,7 @@ export const extractOperations = (
 						}
 					};
 
-					collectFragments(operation as OperationDefinitionNode);
+					collectFragments(operation);
 
 					// Append only the used fragments
 					let fileContent = operationString;
@@ -80,15 +85,14 @@ export const extractOperations = (
 					}
 
 					return {
-						name:
-							(operation as any).name?.value ||
-							`Unnamed_${Math.random().toString(36).substring(7)}`,
+						name: operation.name?.value,
+						location: operation.loc?.source.name,
 						content: fileContent,
 						vars: generateExampleVariables(
 							schema,
 							operation as OperationDefinitionNode,
 						),
-					} satisfies FileContent;
+					};
 				});
 
 			results.push(...operations);

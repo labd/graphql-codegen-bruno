@@ -9,16 +9,53 @@ import {
 	Kind,
 	type NamedTypeNode,
 	type OperationDefinitionNode,
+	type TypeNode,
 } from "graphql";
 
-const generateExampleValue = (
+export const generateExampleVariables = (
 	schema: GraphQLSchema,
-	type: GraphQLType,
-): any => {
+	operation: OperationDefinitionNode,
+): Record<string, unknown> => {
+	const exampleVariables: Record<string, unknown> = {};
+
+	for (const variable of operation.variableDefinitions || []) {
+		if (variable.kind === Kind.VARIABLE_DEFINITION) {
+			let variableType: GraphQLType | undefined;
+			exampleVariables[variable.variable.name.value] = getExampleValue(
+				schema,
+				variable.type,
+			);
+		}
+	}
+
+	return exampleVariables;
+};
+
+const getExampleValue = (schema: GraphQLSchema, type: TypeNode): unknown => {
+	if (type.kind === Kind.NAMED_TYPE) {
+		const variableType = schema.getType((type as NamedTypeNode).name.value);
+
+		if (variableType) {
+			return generateExampleValue(variableType);
+		} else {
+			return null;
+		}
+	} else if (type.kind === Kind.NON_NULL_TYPE) {
+		return getExampleValue(schema, type.type);
+	} else if (type.kind === Kind.LIST_TYPE) {
+		return [getExampleValue(schema, type.type)];
+	}
+};
+
+/**
+ * Generate an example value for a given GraphQL type. This can be either
+ * a scalar type, an input object type, or a list of either.
+ */
+const generateExampleValue = (type: GraphQLType): unknown => {
 	if (type instanceof GraphQLNonNull) {
-		return generateExampleValue(schema, type.ofType);
+		return generateExampleValue(type.ofType);
 	} else if (type instanceof GraphQLList) {
-		return [generateExampleValue(schema, type.ofType)];
+		return [generateExampleValue(type.ofType)];
 	} else if (type instanceof GraphQLScalarType) {
 		switch (type.name) {
 			case "Int":
@@ -36,10 +73,10 @@ const generateExampleValue = (
 		}
 	} else if (type instanceof GraphQLInputObjectType) {
 		const fields = type.getFields();
-		const exampleObject: Record<string, any> = {};
+		const exampleObject: Record<string, unknown> = {};
 
 		for (const key in fields) {
-			exampleObject[key] = generateExampleValue(schema, fields[key].type);
+			exampleObject[key] = generateExampleValue(fields[key].type);
 		}
 
 		return exampleObject;
@@ -49,45 +86,4 @@ const generateExampleValue = (
 	} else {
 		return "";
 	}
-};
-
-export const generateExampleVariables = (
-	schema: GraphQLSchema,
-	operation: OperationDefinitionNode,
-): Record<string, any> => {
-	const exampleVariables: Record<string, any> = {};
-
-	for (const variable of operation.variableDefinitions || []) {
-		if (variable.kind === Kind.VARIABLE_DEFINITION) {
-			let variableType: GraphQLType | undefined;
-
-			// Narrow the type to NamedTypeNode
-			if (variable.type.kind === Kind.NAMED_TYPE) {
-				variableType = schema.getType(
-					(variable.type as NamedTypeNode).name.value,
-				);
-			} else if (variable.type.kind === Kind.NON_NULL_TYPE) {
-				const nonNullType = variable.type.type;
-				if (nonNullType.kind === Kind.NAMED_TYPE) {
-					variableType = schema.getType(
-						(nonNullType as NamedTypeNode).name.value,
-					);
-				}
-			} else if (variable.type.kind === Kind.LIST_TYPE) {
-				const listType = variable.type.type;
-				if (listType.kind === Kind.NAMED_TYPE) {
-					variableType = schema.getType((listType as NamedTypeNode).name.value);
-				}
-			}
-
-			if (variableType) {
-				exampleVariables[variable.variable.name.value] = generateExampleValue(
-					schema,
-					variableType,
-				);
-			}
-		}
-	}
-
-	return exampleVariables;
 };
