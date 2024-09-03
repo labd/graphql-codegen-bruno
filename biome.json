@@ -4,14 +4,23 @@
 		"enabled": true
 	},
 	"files": {
-		"ignore": ["dist/*", "*.json"]
+		"include": ["src/**/*.ts"]
 	},
 	"linter": {
 		"enabled": true,
 		"rules": {
 			"recommended": true,
-			"suspicious": {
-				"noExplicitAny": "warn"
+			"correctness": {
+				"noUnusedImports": "error"
+			},
+			"nursery": {
+				"noEvolvingTypes": "error",
+				"noUnusedFunctionParameters": "off",
+				"useConsistentBuiltinInstantiation": "error",
+				"useDateNow": "error",
+				"useErrorMessage": "error",
+				"useSortedClasses": "error",
+				"useThrowOnlyError": "error"
 			},
 			"style": {
 				"noUselessElse": "off"
