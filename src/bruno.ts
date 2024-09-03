@@ -3,7 +3,6 @@ import type { FileContent } from "./operations";
 
 export const asBruno = async (
 	operation: FileContent,
-	sequence: number,
 	defaults: Record<string, unknown>,
 ) => {
 	const formattedContent = await prettier.format(operation.content, {
@@ -16,7 +15,6 @@ export const asBruno = async (
 meta {
   name: ${operation.name}
   type: graphql
-  seq: ${sequence}
 }
 
 post {

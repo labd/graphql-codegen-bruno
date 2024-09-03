@@ -25,13 +25,12 @@ export const plugin: PluginFunction<BrunoPluginConfig> = async (
 	}
 
 	const operations = extractOperations(schema, documents);
-	let i = 0;
 	const result: Record<string, Record<string, string>> = {};
 	for (const operation of operations) {
 		const fileName = `${operation.name}.bru`;
 		const outputPath = path.join(outputDir, fileName);
 
-		const formattedContent = await asBruno(operation, i, config.defaults);
+		const formattedContent = await asBruno(operation, config.defaults);
 
 		fs.outputFileSync(outputPath, formattedContent);
 		result[operation.name] = {
@@ -40,7 +39,6 @@ export const plugin: PluginFunction<BrunoPluginConfig> = async (
 				? path.relative(outputDir, operation.location)
 				: "(unknown)",
 		};
-		i++;
 	}
 	return JSON.stringify(result, null, 2);
 };
