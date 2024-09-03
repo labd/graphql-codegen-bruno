@@ -1,5 +1,11 @@
 # @labdigital/graphql-codegen-bruno
 
+## 1.1.0
+
+### Minor Changes
+
+- 91c6964: Fix issues with duplicate fragments
+
 ## 1.0.4
 
 ### Patch Changes
