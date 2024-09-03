@@ -1,4 +1,5 @@
 import {
+	GraphQLEnumType,
 	GraphQLInputObjectType,
 	GraphQLList,
 	GraphQLNonNull,
@@ -10,6 +11,12 @@ import {
 	type NamedTypeNode,
 	type OperationDefinitionNode,
 	type TypeNode,
+	isEnumType,
+	isInputObjectType,
+	isListType,
+	isNonNullType,
+	isObjectType,
+	isScalarType,
 } from "graphql";
 
 export const generateExampleVariables = (
@@ -52,11 +59,11 @@ const getExampleValue = (schema: GraphQLSchema, type: TypeNode): unknown => {
  * a scalar type, an input object type, or a list of either.
  */
 const generateExampleValue = (type: GraphQLType): unknown => {
-	if (type instanceof GraphQLNonNull) {
+	if (type instanceof GraphQLNonNull || isNonNullType(type)) {
 		return generateExampleValue(type.ofType);
-	} else if (type instanceof GraphQLList) {
+	} else if (type instanceof GraphQLList || isListType(type)) {
 		return [generateExampleValue(type.ofType)];
-	} else if (type instanceof GraphQLScalarType) {
+	} else if (type instanceof GraphQLScalarType || isScalarType(type)) {
 		switch (type.name) {
 			case "Int":
 				return 123;
@@ -71,7 +78,10 @@ const generateExampleValue = (type: GraphQLType): unknown => {
 			default:
 				return "example";
 		}
-	} else if (type instanceof GraphQLInputObjectType) {
+	} else if (
+		type instanceof GraphQLInputObjectType ||
+		isInputObjectType(type)
+	) {
 		const fields = type.getFields();
 		const exampleObject: Record<string, unknown> = {};
 
@@ -80,10 +90,13 @@ const generateExampleValue = (type: GraphQLType): unknown => {
 		}
 
 		return exampleObject;
-	} else if (type instanceof GraphQLObjectType) {
+	} else if (type instanceof GraphQLObjectType || isObjectType(type)) {
 		// Similar logic as above for handling output types, if needed.
 		return {};
+	} else if (type instanceof GraphQLEnumType || isEnumType(type)) {
+		return type.getValues()[0].value;
 	} else {
+		console.warn("Unknown type", type, type instanceof GraphQLInputObjectType);
 		return "";
 	}
 };

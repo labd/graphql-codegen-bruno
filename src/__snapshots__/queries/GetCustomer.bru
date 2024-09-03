@@ -1,0 +1,57 @@
+
+meta {
+  name: GetCustomer
+  type: graphql
+}
+
+post {
+  url: {{graphql-gateway}}/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  query GetCustomer($info: CustomerInfo!) {
+    customer(info: $info) {
+      ...CustomerDetails
+    }
+  }
+  
+  fragment CustomerDetails on Customer {
+    firstName
+    email
+    addresses {
+      ...AddressDetails
+    }
+  }
+  
+  fragment AddressDetails on Address {
+    id
+    city
+  }
+  fragment CustomerDetails on Customer {
+    firstName
+    email
+    addresses {
+      ...AddressDetails
+    }
+  }
+  fragment AddressDetails on Address {
+    id
+    city
+  }
+  
+}
+
+body:graphql:vars {
+  {
+    "info": {
+      "credentials": {
+        "email": "example",
+        "password": "example"
+      },
+      "authMethod": "EMAIL"
+    }
+  }
+}
+  

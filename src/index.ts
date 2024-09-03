@@ -27,8 +27,9 @@ export const plugin: PluginFunction<BrunoPluginConfig> = async (
 	const operations = extractOperations(schema, documents);
 	const result: Record<string, Record<string, string>> = {};
 	for (const operation of operations) {
+		const subpath = operation.kind === "query" ? "queries" : "mutations";
 		const fileName = `${operation.name}.bru`;
-		const outputPath = path.join(outputDir, fileName);
+		const outputPath = path.join(outputDir, subpath, fileName);
 
 		const formattedContent = await asBruno(operation, config.defaults);
 

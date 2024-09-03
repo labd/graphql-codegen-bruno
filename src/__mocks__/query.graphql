@@ -1,0 +1,20 @@
+# query.graphql
+
+query GetCustomer($info: CustomerInfo!) {
+  customer(info: $info) {
+    ...CustomerDetails
+  }
+}
+
+fragment CustomerDetails on Customer {
+  firstName
+  email
+  addresses {
+    ...AddressDetails
+  }
+}
+
+fragment AddressDetails on Address {
+  id
+  city
+}

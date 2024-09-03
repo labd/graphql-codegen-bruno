@@ -5,6 +5,7 @@ import {
 	type GraphQLSchema,
 	Kind,
 	type OperationDefinitionNode,
+	print,
 } from "graphql";
 import { generateExampleVariables } from "./vars";
 
@@ -13,6 +14,7 @@ export interface BruPluginConfig {
 }
 
 export type FileContent = {
+	kind: string | undefined;
 	name: string;
 	content: string;
 	vars: Record<string, unknown>;
@@ -26,14 +28,15 @@ export const extractOperations = (
 	const results: FileContent[] = [];
 
 	// Step 1: Collect all fragments
-	const allFragments: Record<string, FragmentDefinitionNode> = {};
+	const allFragments = new Map<string, FragmentDefinitionNode>();
 
 	for (const doc of documents) {
 		if (doc.document) {
 			for (const definition of doc.document.definitions) {
 				if (definition.kind === Kind.FRAGMENT_DEFINITION) {
 					const fragmentName = definition.name.value;
-					allFragments[fragmentName] = definition as FragmentDefinitionNode;
+					// allFragments[fragmentName] = definition as FragmentDefinitionNode;
+					allFragments.set(fragmentName, definition as FragmentDefinitionNode);
 				}
 			}
 		}
@@ -60,8 +63,9 @@ export const extractOperations = (
 								if (selection.kind === Kind.FRAGMENT_SPREAD) {
 									usedFragments.add(selection.name.value);
 									// Recursively collect fragments within fragments
-									if (allFragments[selection.name.value]) {
-										collectFragments(allFragments[selection.name.value]);
+									const fragment = allFragments.get(selection.name.value);
+									if (fragment) {
+										collectFragments(fragment);
 									}
 								} else if (selection.selectionSet) {
 									// @ts-expect-error
@@ -77,9 +81,9 @@ export const extractOperations = (
 					let fileContent = operationString;
 
 					for (const fragmentName of usedFragments) {
-						const fragment = allFragments[fragmentName];
+						const fragment = allFragments.get(fragmentName);
 						if (fragment) {
-							const fragmentString = fragment.loc?.source.body || "";
+							const fragmentString = print(fragment);
 							fileContent += `\n${fragmentString}`;
 						}
 					}
@@ -87,6 +91,7 @@ export const extractOperations = (
 					return {
 						name: operation.name?.value,
 						location: operation.loc?.source.name,
+						kind: operation.operation,
 						content: fileContent,
 						vars: generateExampleVariables(
 							schema,

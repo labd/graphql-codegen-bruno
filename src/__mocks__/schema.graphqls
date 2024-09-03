@@ -1,0 +1,41 @@
+type Query {
+  customer(info: CustomerInfo!): Customer
+  product(id: ID!): Product
+}
+
+input CustomerInfo {
+	credentials: Credentials!
+	authMethod: AuthMethod!
+}
+
+enum AuthMethod {
+	EMAIL
+	PHONE
+}
+
+input Credentials {
+	email: String!
+	password: String!
+}
+
+type Customer {
+  id: ID!
+  firstName: String!
+  email: String!
+  addresses: [Address!]!
+}
+
+type Product {
+  id: ID!
+  name: String!
+  price: Float!
+}
+
+type Address {
+  id: ID!
+  email: String
+  firstName: String
+  lastName: String
+  city: String
+}
+
