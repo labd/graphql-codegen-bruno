@@ -1,9 +1,5 @@
 import path from "node:path";
-import type {
-	PluginFunction,
-	PluginValidateFn,
-	Types,
-} from "@graphql-codegen/plugin-helpers";
+import type { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
 import fs from "fs-extra";
 import type { GraphQLSchema } from "graphql";
 import { asBruno } from "./bruno";
