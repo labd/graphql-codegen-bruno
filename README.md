@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> Moved to https://github.com/labd/graphql-codegen-plugins
+
 ## GraphQL Codegen Bruno Plugin
 This plugin generates a directory with
 [Bruno](https://github.com/usebruno/bruno) files with all GraphQL queries in
